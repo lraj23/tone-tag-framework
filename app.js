@@ -30,6 +30,44 @@ app.message("", async ({ message: { text, channel, channel_type } }) => {
 	}
 });
 
+app.message("/j", async ({ message: { channel, user, thread_ts, ts, text } }) => {
+	if (text.split("/j").join("").trim()) {
+		await app.client.chat.postEphemeral({ channel, user, text: "Your message was sent with a /j tone tag warning!", thread_ts: ((thread_ts == ts) ? undefined : thread_ts) });
+		await app.client.chat.postMessage({ channel, text: "_This message was sent with a /j tone tag, so do not take this seriously..._\n" + text, thread_ts: ((thread_ts == ts) ? undefined : thread_ts) });
+	} else {
+		await app.client.chat.postEphemeral({
+			channel,
+			user,
+			text: "Your message marked with a /j tone tag was empty, so you can enter what message you wanted to send here or cancel.",
+			blocks: blocks.j,
+			thread_ts: ((thread_ts == ts) ? undefined : thread_ts)
+		});
+	}
+});
+
+commands.j = async ({ ack, respond, body: { user_id: user, channel_id: channel }, command }) => {
+	await ack();
+	let text = "";
+	if (command) text = command.text;
+	if (text.trim()) {
+		await respond({ channel, user, text: "Your message was sent with a /j tone tag warning!" });
+		await app.client.chat.postMessage({ channel, text: "_This message was sent with a /j tone tag, so do not take this seriously..._\n" + text });
+	} else {
+		await respond({
+			channel,
+			user,
+			text: "Your message marked with a /j tone tag was empty, so you can enter what message you wanted to send here or cancel.",
+			blocks: blocks.j
+		});
+	}
+};
+app.command("/ttframework-j", commands.j);
+app.command("/j", commands.j);
+
+app.action("edit-opts", async ({ ack }) => await ack());
+
+app.action("confirm-j", async ({ ack }) => await ack());
+
 app.action(/^ignore-.+$/, async ({ ack }) => await ack());
 
 app.action("cancel", async ({ ack, respond }) => [await ack(), await respond({ delete_original: true })]);
