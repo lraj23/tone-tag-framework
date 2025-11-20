@@ -1,0 +1,5 @@
+const blocks = {};
+
+export {
+	blocks
+};
