@@ -33,7 +33,23 @@ app.message("", async ({ message: { text, channel, channel_type } }) => {
 app.message("/j", async ({ message: { channel, user, thread_ts, ts, text } }) => {
 	if (text.split("/j").join("").trim()) {
 		await app.client.chat.postEphemeral({ channel, user, text: "Your message was sent with a /j tone tag warning!", thread_ts: ((thread_ts == ts) ? undefined : thread_ts) });
-		await app.client.chat.postMessage({ channel, text: "_This message was sent with a /j tone tag, so do not take this seriously..._\n" + text, thread_ts: ((thread_ts == ts) ? undefined : thread_ts) });
+		const info = await app.client.users.info({ user });
+		await app.client.chat.postMessage({
+			channel,
+			text: "_This message was sent with a /j tone tag, so do not take this seriously..._",
+			blocks: [
+				{
+					type: "section",
+					text: {
+						type: "mrkdwn",
+						text: "_<https://hackclub.slack.com/archives/" + channel + "/p" + (ts * 1000000) + "|This message was sent with a /j tone tag, so do not take this seriously...>_"
+					}
+				}
+			],
+			username: info.user.profile.display_name,
+			icon_url: info.user.profile.image_original,
+			thread_ts: ((thread_ts == ts) ? undefined : thread_ts)
+		});
 	} else {
 		await app.client.chat.postEphemeral({
 			channel,
@@ -51,7 +67,13 @@ commands.j = async ({ ack, respond, body: { user_id: user, channel_id: channel }
 	if (command) text = command.text;
 	if (text.trim()) {
 		await respond({ channel, user, text: "Your message was sent with a /j tone tag warning!" });
-		await app.client.chat.postMessage({ channel, text: "_This message was sent with a /j tone tag, so do not take this seriously..._\n" + text });
+		const info = await app.client.users.info({ user });
+		await app.client.chat.postMessage({
+			channel,
+			text: "_This message was sent with a /j tone tag, so do not take this seriously..._\n" + text,
+			username: info.user.profile.display_name,
+			icon_url: info.user.profile.image_original
+		});
 	} else {
 		await respond({
 			channel,
