@@ -3,7 +3,7 @@ import { join } from "node:path";
 
 const dataFile = "ttframework.json";
 const dataFilePath = join(import.meta.dirname, dataFile);
-let tTFramework = JSON.parse(fs.readFileSync(dataFilePath, "utf8"));
+let TTFramework = JSON.parse(fs.readFileSync(dataFilePath, "utf8"));
 const shortMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const logStream = fs.createWriteStream(join(import.meta.dirname, "updates.log"), {
 	"flags": "a",
@@ -56,11 +56,11 @@ async function logInteraction(interaction) {
 }
 
 function getTTFramework() {
-	return cloneObj(tTFramework);
+	return cloneObj(TTFramework);
 }
 
 function saveState(data) {
-	tTFramework = cloneObj(data);
+	TTFramework = cloneObj(data);
 
 	let saveObj = cloneObj(data);
 	delete saveObj.debug;

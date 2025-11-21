@@ -86,7 +86,107 @@ commands.j = async ({ ack, respond, body: { user_id: user, channel_id: channel }
 app.command("/ttframework-j", commands.j);
 app.command("/j", commands.j);
 
-app.action("edit-opts", async ({ ack }) => await ack());
+commands["edit-opts"] = async ({ ack, body: { user_id: user }, respond }) => {
+	await ack();
+	const TTFramework = getTTFramework();
+	const optInLevels = Object.entries({
+		none: "Nothing",
+		askEveryTime: "Ask Every Time",
+		automatic: "Automatically Post"
+	});
+	if (!TTFramework.opts[user]) TTFramework.opts[user] = "askEveryTime";
+	const currentOpted = TTFramework.opts[user];
+	console.log(currentOpted);
+	await respond({
+		text: "Choose which type of opt-in you want to have:",
+		blocks: [
+			{
+				type: "section",
+				text: {
+					type: "mrkdwn",
+					text: "Choose which type of opt-in you want to have:"
+				},
+				accessory: {
+					type: "static_select",
+					placeholder: {
+						type: "plain_text",
+						text: "Required",
+						emoji: true
+					},
+					options: optInLevels.map(level => ({
+						text: {
+							type: "plain_text",
+							text: level[1],
+							emoji: true
+						},
+						value: level[0]
+					})),
+					initial_option: {
+						text: {
+							type: "plain_text",
+							text: Object.fromEntries(optInLevels)[currentOpted],
+							emoji: true
+						},
+						value: currentOpted
+					},
+					action_id: "ignore-opt-in-level"
+				}
+			},
+			{
+				type: "actions",
+				elements: [
+					{
+						type: "button",
+						text: {
+							type: "plain_text",
+							text: ":x: Cancel",
+							emoji: true
+						},
+						value: "cancel",
+						action_id: "cancel"
+					},
+					{
+						type: "button",
+						text: {
+							type: "plain_text",
+							text: ":white_check_mark: Go!",
+							emoji: true
+						},
+						value: "confirm",
+						action_id: "confirm-opt-change"
+					}
+				]
+			}
+		]
+	});
+};
+app.command("/ttframework-edit-opts", commands["edit-opts"]);
+app.action("edit-opts", async ({ ack, body: { user: { id: user } }, respond }) => commands["edit-opts"]({ ack, body: { user_id: user }, respond }));
+
+app.action("confirm-opt-change", async ({ ack, body: { user: { id: user }, state: { values } }, respond }) => {
+	await ack();
+	const TTFramework = getTTFramework();
+	console.log(values);
+	const optInLevel = values[Object.keys(values)[0]]["ignore-opt-in-level"].selected_option.value || "none";
+	console.log(optInLevel);
+
+	switch (optInLevel) {
+		case "none":
+			await respond("<@" + user + "> set their opts to nothing. The bot will no longer interact with you whatsoever.");
+			TTFramework.opts[user] = "none";
+			break;
+		case "askEveryTime":
+			await respond("<@" + user + "> set their opts to ask every time. Every time you use a tone tag supported by the bot, the bot will ask if you want to add the tone tag warning. The bot will not send you messages or interact otherwise.");
+			TTFramework.opts[user] = "askEveryTime";
+			break;
+		case "automatic":
+			await respond("<@" + user + "> set their opts to automatically post. Every time you use a tone tag supported by the bot, the bot will post a tone tag morning. The bot will not send you messages or interact otherwise.");
+			TTFramework.opts[user] = "automatic";
+			break;
+	}
+
+	saveState(TTFramework);
+});
 
 app.action("confirm-j", async ({ ack }) => await ack());
 
