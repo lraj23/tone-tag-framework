@@ -1,6 +1,24 @@
 const blocks = {};
 
-blocks["ask-j"] = [
+blocks.warn = msg => [
+	{
+		type: "section",
+		text: {
+			type: "mrkdwn",
+			text: msg
+		},
+		accessory: {
+			type: "button",
+			text: {
+				type: "plain_text",
+				text: "Close"
+			},
+			action_id: "cancel"
+		}
+	}
+];
+
+blocks["ask-j"] = (thread_ts, ts) => [
 	{
 		type: "section",
 		text: {
@@ -38,7 +56,7 @@ blocks["ask-j"] = [
 					text: ":white_check_mark: Go",
 					emoji: true
 				},
-				value: "confirm",
+				value: thread_ts + "|" + ts,
 				action_id: "tone-tag-j"
 			}
 		]
@@ -55,7 +73,7 @@ blocks["automatic-j"] = (channel, ts) => [
 	}
 ];
 
-blocks["empty-j"] = [
+blocks["empty-j"] = (thread_ts, ts) => [
 	{
 		type: "input",
 		element: {
@@ -100,8 +118,8 @@ blocks["empty-j"] = [
 					text: ":white_check_mark: Confirm",
 					emoji: true
 				},
-				value: "confirm-j",
-				action_id: "confirm-j"
+				value: thread_ts + "|" + ts,
+				action_id: "tone-tag-j"
 			}
 		]
 	}
