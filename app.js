@@ -31,35 +31,38 @@ app.message("", async ({ message: { text, channel, channel_type } }) => {
 });
 
 app.message("/j", async ({ message: { channel, user, thread_ts, ts, text } }) => {
-	if (text.split("/j").join("").trim()) {
-		await app.client.chat.postEphemeral({ channel, user, text: "Your message was sent with a /j tone tag warning!", thread_ts: ((thread_ts == ts) ? undefined : thread_ts) });
+	const TTFramework = getTTFramework();
+	if (!TTFramework.opts[user]) TTFramework.opts[user] = "askEveryTime";
+	const opts = TTFramework.opts[user];
+	if (opts === "none") return;
+	const message = text.split("/j").join("").trim();
+	console.log(opts, message);
+	if (message && opts === "askEveryTime") await app.client.chat.postEphemeral({
+		channel,
+		user,
+		text: "Your message included a /j tone tag! Do you want to add the warning?",
+		blocks: blocks["ask-j"]
+	});
+	else if (message && opts === "automatic") {
 		const info = await app.client.users.info({ user });
 		await app.client.chat.postMessage({
 			channel,
 			text: "_This message was sent with a /j tone tag, so do not take this seriously..._",
-			blocks: [
-				{
-					type: "section",
-					text: {
-						type: "mrkdwn",
-						text: "_<https://hackclub.slack.com/archives/" + channel + "/p" + (ts * 1000000) + "|This message was sent with a /j tone tag, so do not take this seriously...>_"
-					}
-				}
-			],
+			blocks: blocks["automatic-j"](channel, ts),
 			username: info.user.profile.display_name,
 			icon_url: info.user.profile.image_original,
 			thread_ts: ((thread_ts == ts) ? undefined : thread_ts)
 		});
-	} else {
-		await app.client.chat.postEphemeral({
-			channel,
-			user,
-			text: "Your message marked with a /j tone tag was empty, so you can enter what message you wanted to send here or cancel.",
-			blocks: blocks.j,
-			thread_ts: ((thread_ts == ts) ? undefined : thread_ts)
-		});
-	}
+	} else await app.client.chat.postEphemeral({
+		channel,
+		user,
+		text: "Your message marked with a /j tone tag was empty, so you can enter what message you wanted to send here or cancel.",
+		blocks: blocks["empty-j"],
+		thread_ts: ((thread_ts == ts) ? undefined : thread_ts)
+	});
 });
+
+app.action("tone-tag-j", async ({ ack }) => await ack());
 
 commands.j = async ({ ack, respond, body: { user_id: user, channel_id: channel }, command }) => {
 	await ack();
@@ -79,7 +82,7 @@ commands.j = async ({ ack, respond, body: { user_id: user, channel_id: channel }
 			channel,
 			user,
 			text: "Your message marked with a /j tone tag was empty, so you can enter what message you wanted to send here or cancel.",
-			blocks: blocks.j
+			blocks: blocks["empty-j"]
 		});
 	}
 };
@@ -99,65 +102,7 @@ commands["edit-opts"] = async ({ ack, body: { user_id: user }, respond }) => {
 	console.log(currentOpted);
 	await respond({
 		text: "Choose which type of opt-in you want to have:",
-		blocks: [
-			{
-				type: "section",
-				text: {
-					type: "mrkdwn",
-					text: "Choose which type of opt-in you want to have:"
-				},
-				accessory: {
-					type: "static_select",
-					placeholder: {
-						type: "plain_text",
-						text: "Required",
-						emoji: true
-					},
-					options: optInLevels.map(level => ({
-						text: {
-							type: "plain_text",
-							text: level[1],
-							emoji: true
-						},
-						value: level[0]
-					})),
-					initial_option: {
-						text: {
-							type: "plain_text",
-							text: Object.fromEntries(optInLevels)[currentOpted],
-							emoji: true
-						},
-						value: currentOpted
-					},
-					action_id: "ignore-opt-in-level"
-				}
-			},
-			{
-				type: "actions",
-				elements: [
-					{
-						type: "button",
-						text: {
-							type: "plain_text",
-							text: ":x: Cancel",
-							emoji: true
-						},
-						value: "cancel",
-						action_id: "cancel"
-					},
-					{
-						type: "button",
-						text: {
-							type: "plain_text",
-							text: ":white_check_mark: Go!",
-							emoji: true
-						},
-						value: "confirm",
-						action_id: "confirm-opt-change"
-					}
-				]
-			}
-		]
+		blocks: blocks["edit-opts"](optInLevels, currentOpted)
 	});
 };
 app.command("/ttframework-edit-opts", commands["edit-opts"]);
@@ -166,6 +111,8 @@ app.action("edit-opts", async ({ ack, body: { user: { id: user } }, respond }) =
 app.action("confirm-opt-change", async ({ ack, body: { user: { id: user }, state: { values } }, respond }) => {
 	await ack();
 	const TTFramework = getTTFramework();
+	console.log(values);
+	values = (values.length ? values : { 0: { "ignore-opt-in-level": { selected_option: { value: TTFramework.opts[user] } } } });
 	console.log(values);
 	const optInLevel = values[Object.keys(values)[0]]["ignore-opt-in-level"].selected_option.value || "none";
 	console.log(optInLevel);
