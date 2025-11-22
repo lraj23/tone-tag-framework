@@ -5,6 +5,7 @@ const lraj23UserId = "U0947SL6AKB";
 const lraj23BotTestingId = "C09GR27104V";
 const gPortfolioDmId = "D09SN86RFC1";
 const commands = {};
+const toneTags = {};
 
 app.message("", async ({ message: { text, channel, channel_type } }) => {
 	if ((channel_type === "im") && (channel === gPortfolioDmId)) {
@@ -30,64 +31,69 @@ app.message("", async ({ message: { text, channel, channel_type } }) => {
 	}
 });
 
-app.message("/j", async ({ message: { channel, user, thread_ts, ts, text } }) => {
+toneTags.j = async interaction => {
+	if (interaction.ack) interaction.ack();
 	const TTFramework = getTTFramework();
-	if (!TTFramework.opts[user]) TTFramework.opts[user] = "askEveryTime";
-	const opts = TTFramework.opts[user];
-	if (opts === "none") return;
-	const message = text.split("/j").join("").trim();
-	console.log(opts, message);
-	if (message && opts === "askEveryTime") await app.client.chat.postEphemeral({
-		channel,
-		user,
-		text: "Your message included a /j tone tag! Do you want to add the warning?",
-		blocks: blocks["ask-j"]
-	});
-	else if (message && opts === "automatic") {
-		const info = await app.client.users.info({ user });
-		await app.client.chat.postMessage({
+	if (interaction.message) {
+		const { message: { channel, user, thread_ts, ts, text } } = interaction;
+		if (!TTFramework.opts[user]) TTFramework.opts[user] = "askEveryTime";
+		const opts = TTFramework.opts[user];
+		if (opts === "none") return;
+		const message = text.split("/j").join("").trim();
+		console.log(opts, message);
+		if (message && opts === "askEveryTime") await app.client.chat.postEphemeral({
 			channel,
-			text: "_This message was sent with a /j tone tag, so do not take this seriously..._",
-			blocks: blocks["automatic-j"](channel, ts),
-			username: info.user.profile.display_name,
-			icon_url: info.user.profile.image_original,
-			thread_ts: ((thread_ts == ts) ? undefined : thread_ts)
+			user,
+			text: "Your message included a /j tone tag! Do you want to add the warning?",
+			blocks: blocks["ask-j"]
 		});
-	} else await app.client.chat.postEphemeral({
-		channel,
-		user,
-		text: "Your message marked with a /j tone tag was empty, so you can enter what message you wanted to send here or cancel.",
-		blocks: blocks["empty-j"],
-		thread_ts: ((thread_ts == ts) ? undefined : thread_ts)
-	});
-});
-
-app.action("tone-tag-j", async ({ ack }) => await ack());
-
-commands.j = async ({ ack, respond, body: { user_id: user, channel_id: channel }, command }) => {
-	await ack();
-	let text = "";
-	if (command) text = command.text;
-	if (text.trim()) {
-		await respond({ channel, user, text: "Your message was sent with a /j tone tag warning!" });
-		const info = await app.client.users.info({ user });
-		await app.client.chat.postMessage({
-			channel,
-			text: "_This message was sent with a /j tone tag, so do not take this seriously..._\n" + text,
-			username: info.user.profile.display_name,
-			icon_url: info.user.profile.image_original
-		});
-	} else {
-		await respond({
+		else if (message && opts === "automatic") {
+			const info = await app.client.users.info({ user });
+			await app.client.chat.postMessage({
+				channel,
+				text: "_This message was sent with a /j tone tag, so do not take this seriously..._",
+				blocks: blocks["automatic-j"](channel, ts),
+				username: info.user.profile.display_name,
+				icon_url: info.user.profile.image_original,
+				thread_ts: ((thread_ts == ts) ? undefined : thread_ts)
+			});
+		} else await app.client.chat.postEphemeral({
 			channel,
 			user,
 			text: "Your message marked with a /j tone tag was empty, so you can enter what message you wanted to send here or cancel.",
-			blocks: blocks["empty-j"]
+			blocks: blocks["empty-j"],
+			thread_ts: ((thread_ts == ts) ? undefined : thread_ts)
 		});
+		saveState(TTFramework);
+	} else {
+		const { respond, body: { user_id: user, channel_id: channel }, command } = interaction;
+		let text = "";
+		if (command) text = command.text;
+		if (text.trim()) {
+			await respond({ channel, user, text: "Your message was sent with a /j tone tag warning!" });
+			const info = await app.client.users.info({ user });
+			await app.client.chat.postMessage({
+				channel,
+				text: "_This message was sent with a /j tone tag, so do not take this seriously..._\n" + text,
+				username: info.user.profile.display_name,
+				icon_url: info.user.profile.image_original
+			});
+		} else {
+			await respond({
+				channel,
+				user,
+				text: "Your message marked with a /j tone tag was empty, so you can enter what message you wanted to send here or cancel.",
+				blocks: blocks["empty-j"]
+			});
+		}
 	}
 };
+app.message("/j", toneTags.j);
+commands.j = toneTags.j;
 app.command("/ttframework-j", commands.j);
 app.command("/j", commands.j);
+
+app.action("tone-tag-j", async ({ ack }) => await ack());
 
 commands["edit-opts"] = async ({ ack, body: { user_id: user }, respond }) => {
 	await ack();
@@ -112,7 +118,7 @@ app.action("confirm-opt-change", async ({ ack, body: { user: { id: user }, state
 	await ack();
 	const TTFramework = getTTFramework();
 	console.log(values);
-	values = (values.length ? values : { 0: { "ignore-opt-in-level": { selected_option: { value: TTFramework.opts[user] } } } });
+	values = (Object.entries(values).length ? values : { 0: { "ignore-opt-in-level": { selected_option: { value: TTFramework.opts[user] } } } });
 	console.log(values);
 	const optInLevel = values[Object.keys(values)[0]]["ignore-opt-in-level"].selected_option.value || "none";
 	console.log(optInLevel);
