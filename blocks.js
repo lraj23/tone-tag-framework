@@ -18,12 +18,12 @@ blocks.warn = msg => [
 	}
 ];
 
-blocks["ask-j"] = (thread_ts, ts) => [
+blocks["ask"] = (thread_ts, ts, tagName) => [
 	{
 		type: "section",
 		text: {
 			type: "mrkdwn",
-			text: "Your message included a /j tone tag! Do you want to add the warning?"
+			text: "Your message included a /" + tagName + " tone tag! Do you want to add the warning?"
 		}
 	},
 	{
@@ -57,33 +57,33 @@ blocks["ask-j"] = (thread_ts, ts) => [
 					emoji: true
 				},
 				value: thread_ts + "|" + ts,
-				action_id: "tone-tag-j"
+				action_id: "tone-tag-" + tagName
 			}
 		]
 	}
 ];
 
-blocks["automatic-j"] = (channel, ts) => [
+blocks["automatic"] = (channel, ts, tagName, description) => [
 	{
 		type: "section",
 		text: {
 			type: "mrkdwn",
-			text: "_<https://hackclub.slack.com/archives/" + channel + "/p" + (ts * 1000000) + "|This message was sent with a /j tone tag, so do not take this seriously...>_"
+			text: "_<https://hackclub.slack.com/archives/" + channel + "/p" + (ts * 1000000) + "|This message was sent with a /" + tagName + " tone tag, so " + description + ">_"
 		}
 	}
 ];
 
-blocks["empty-j"] = (thread_ts, ts) => [
+blocks["empty"] = (thread_ts, ts, tagName) => [
 	{
 		type: "input",
 		element: {
 			type: "plain_text_input",
 			multiline: true,
-			action_id: "ignore-j"
+			action_id: "ignore-" + tagName
 		},
 		label: {
 			type: "plain_text",
-			text: "Your message marked with a /j tone tag was empty, so you can enter what message you wanted to send here or cancel.",
+			text: "Your message marked with a /" + tagName + " tone tag was empty, so you can enter what message you wanted to send here or cancel.",
 			emoji: true
 		},
 		optional: false
@@ -119,7 +119,7 @@ blocks["empty-j"] = (thread_ts, ts) => [
 					emoji: true
 				},
 				value: thread_ts + "|" + ts,
-				action_id: "tone-tag-j"
+				action_id: "tone-tag-" + tagName
 			}
 		]
 	}
