@@ -5,7 +5,6 @@ const lraj23UserId = "U0947SL6AKB";
 const lraj23BotTestingId = "C09GR27104V";
 const gPortfolioDmId = "D09SN86RFC1";
 const commands = {};
-const toneTags = {};
 
 app.message("", async ({ message: { text, channel, channel_type } }) => {
 	if ((channel_type === "im") && (channel === gPortfolioDmId)) {
@@ -31,9 +30,8 @@ app.message("", async ({ message: { text, channel, channel_type } }) => {
 	}
 });
 
-
 const setToneTag = (tagName, description) => {
-	toneTags[tagName] = async interaction => {
+	commands[tagName] = async interaction => {
 		if (interaction.ack) interaction.ack();
 		const TTFramework = getTTFramework();
 		if (interaction.message) {
@@ -93,8 +91,7 @@ const setToneTag = (tagName, description) => {
 			}
 		}
 	};
-	app.message("/" + tagName, toneTags[tagName]);
-	commands[tagName] = toneTags[tagName];
+	app.message("/" + tagName, commands[tagName]);
 	app.command("/ttframework-" + tagName, commands[tagName]);
 	app.command("/" + tagName, commands[tagName]);
 
@@ -137,6 +134,11 @@ const setToneTag = (tagName, description) => {
 }
 setToneTag("j", "do not take this seriously...");
 setToneTag("srs", "what this person is saying is actually important, and you probably shouldn't joke around...");
+setToneTag("silly", "this person is completely joking around; don't cancel them :skulk:...");
+setToneTag("s", "this person is being sarcastic. They don't mean what they're saying...");
+setToneTag("sarc", "this person is being sarcastic. They don't mean what they're saying...");
+setToneTag("hj", "what this person is saying is mostly a joke, but still carries weight...");
+setToneTag("hsrs", "what this person is saying is mostly serious, but not really...");
 
 commands["edit-opts"] = async ({ ack, body: { user_id: user }, respond }) => {
 	await ack();
