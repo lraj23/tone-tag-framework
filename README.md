@@ -4,6 +4,10 @@
 
 This bot is designed to help people using tone tags with using them (sort of)! Including a tone tag in your message in a channel with the bot will prompt it to ask you if you want to include said tone tag's warning in the channel.
 
+### Theme Explanation
+
+The theme for this week was `framework`, which honestly doesn't seem very obviously fitting for this project beyonds its name. The way this project fits the theme `framework` is in that when a tone tag warning is added, it creates a "framework" around the message sent. (Yes I'm hanging on by a thread here.)
+
 ### Commands
 
 There are a LOT of commands on this bot because of all the tone tags!
