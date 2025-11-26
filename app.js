@@ -135,7 +135,6 @@ const setToneTag = (tagName, description) => {
 setToneTag("j", "do not take this seriously...");
 setToneTag("srs", "what this person is saying is actually important, and you probably shouldn't joke around...");
 setToneTag("silly", "this person is completely joking around; don't cancel them :skulk:...");
-setToneTag("s", "this person is being sarcastic. They don't mean what they're saying...");
 setToneTag("sarc", "this person is being sarcastic. They don't mean what they're saying...");
 setToneTag("hj", "what this person is saying is mostly a joke, but still carries weight...");
 setToneTag("hsrs", "what this person is saying is mostly serious, but not really...");
@@ -192,7 +191,7 @@ app.action("cancel", async ({ ack, respond }) => [await ack(), await respond({ d
 
 app.action("confirm", async ({ ack }) => await ack());
 
-commands.help = async ({ ack, respond, body: { user_id } }) => [await ack(), await respond("This is the Tone Tag Framework bot! It helps you write a message with a certain tone tag, and guides those who accidentally run tone tags as commands. _More information to be added..._\nFor more information, check out the readme at https://github.com/lraj23/tone-tag-framework."), user_id === lraj23UserId ? await respond("Test but only for <@" + lraj23UserId + ">. If you aren't him and you see this message, DM him IMMEDIATELY about this!") : null];
+commands.help = async ({ ack, respond, body: { user_id } }) => [await ack(), await respond("This is the Tone Tag Framework bot! It helps you write a message with a certain tone tag, and guides those who accidentally run tone tags as commands.\nFor more information, check out the readme at https://github.com/lraj23/tone-tag-framework."), user_id === lraj23UserId ? await respond("Test but only for <@" + lraj23UserId + ">. If you aren't him and you see this message, DM him IMMEDIATELY about this!") : null];
 app.command("/ttframework-help", commands.help);
 
 app.message(/secret button/i, async ({ message: { channel, user, thread_ts, ts } }) => await app.client.chat.postEphemeral({
